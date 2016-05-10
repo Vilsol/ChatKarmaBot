@@ -29,7 +29,7 @@ public class KarmaBot {
 
     private HashMap<String, HashMap<String, User>> chatUsers = new HashMap<>();
 
-    private Pattern usernamePattern = Pattern.compile("^@[\\w_]{5,32}\\s*(—|--|\\+\\+)$");
+    private Pattern usernamePattern = Pattern.compile("^@[\\w_]{5,32}\\s*(--|\\+\\+)$");
     private Pattern checkPattern = Pattern.compile("<meta property=\"og:title\" content=\"(.+?)\">");
 
     private long delayTime = 1000 * (60 * 60 * 6); // 6 Hours
@@ -45,6 +45,8 @@ public class KarmaBot {
             @Override
             public void onTextMessageReceived(TextMessageReceivedEvent event){
                 String content = event.getContent().getContent();
+                content = content.replaceAll("—", "--");
+
                 if(usernamePattern.matcher(content).find()){
                     String chatId = event.getChat().getId();
 
