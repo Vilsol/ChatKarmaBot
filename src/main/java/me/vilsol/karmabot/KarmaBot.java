@@ -28,11 +28,13 @@ public class KarmaBot {
     }
 
     private HashMap<String, HashMap<String, User>> chatUsers = new HashMap<>();
+    private HashMap<String, Long> lastVotes = new HashMap<>();
 
     private Pattern usernamePattern = Pattern.compile("^@[\\w_]{5,32}\\s*(--|\\+\\+)$");
     private Pattern checkPattern = Pattern.compile("<meta property=\"og:title\" content=\"(.+?)\">");
 
-    private long delayTime = 1000 * (60 * 30); // 30 Minutes
+    private long cooldownTime = 1000 * (60 * 30); // 30 Minutes
+    private long delayTime = 1000 * 60; // 1 Minute
 
     public KarmaBot(String apiKey) throws IOException{
         TelegramBot telegramBot = TelegramBot.login(apiKey);
@@ -48,15 +50,22 @@ public class KarmaBot {
                 content = content.replaceAll("—", "--");
 
                 if(usernamePattern.matcher(content).find()){
+                    SendableTextMessage.SendableTextMessageBuilder message = SendableTextMessage.builder().replyTo(event.getMessage());
+                    String username = event.getMessage().getSender().getUsername();
+
+                    if(lastVotes.getOrDefault(username.toLowerCase(), 0L) + delayTime > System.currentTimeMillis()){
+                        message.message("You have already voted in the past minute!");
+                        event.getChat().sendMessage(message.build());
+                        return;
+                    }
+
+                    lastVotes.put(username.toLowerCase(), System.currentTimeMillis());
+
                     String chatId = event.getChat().getId();
 
                     if(!chatUsers.containsKey(chatId)){
                         chatUsers.put(chatId, new HashMap<>());
                     }
-
-                    SendableTextMessage.SendableTextMessageBuilder message = SendableTextMessage.builder().replyTo(event.getMessage());
-
-                    String username = event.getMessage().getSender().getUsername();
 
                     if(!chatUsers.get(chatId).containsKey(username.toLowerCase())){
                         chatUsers.get(chatId).put(username.toLowerCase(), new User(username.toLowerCase()));
@@ -79,7 +88,7 @@ public class KarmaBot {
 
                     User user = chatUsers.get(chatId).get(username.toLowerCase());
                     Long lastVote = user.getLastKarma().getOrDefault(target.toLowerCase(), 0L);
-                    if(lastVote + delayTime > System.currentTimeMillis()){
+                    if(lastVote + cooldownTime > System.currentTimeMillis()){
                         message.message("You have already voted for this user in past 30 minutes!");
                         event.getChat().sendMessage(message.build());
                         return;
@@ -246,10 +255,17 @@ public class KarmaBot {
         File f = new File("karma.json");
         if(f.exists()){
             JSONObject k = new JSONObject(Files.readAllLines(f.toPath()).get(0));
-            k.keySet().forEach(chat -> {
+
+            JSONObject chats = k.getJSONObject("chats");
+            chats.keySet().forEach(chat -> {
                 chatUsers.put(chat, new HashMap<>());
-                JSONObject chatObject = k.getJSONObject(chat);
+                JSONObject chatObject = chats.getJSONObject(chat);
                 chatObject.keySet().forEach(u -> chatUsers.get(chat).put(u, new User(chatObject.getJSONObject(u))));
+            });
+
+            JSONObject lastVotes = k.getJSONObject("lastVotes");
+            lastVotes.keySet().forEach(user -> {
+                lastVotes.put(user, lastVotes.getLong(user));
             });
         }
     }
@@ -257,6 +273,8 @@ public class KarmaBot {
     private void saveKarma() throws IOException {
         File f = new File("karma.json");
         JSONObject result = new JSONObject();
+        JSONObject chats = new JSONObject();
+
         chatUsers.forEach((k, v) -> {
             JSONObject chat = new JSONObject();
             v.forEach((k1, v1) -> {
@@ -266,8 +284,12 @@ public class KarmaBot {
                 user.put("lastKarma", v1.getLastKarma());
                 chat.put(v1.getUsername(), user);
             });
-            result.put(k, chat);
+            chats.put(k, chat);
         });
+
+        result.put("chats", chats);
+        result.put("lastVotes", lastVotes);
+
         Files.write(f.toPath(), result.toString().getBytes());
     }
 
