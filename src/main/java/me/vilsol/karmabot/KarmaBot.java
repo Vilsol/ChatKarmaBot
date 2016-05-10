@@ -93,6 +93,12 @@ public class KarmaBot {
 
                     User tUser = chatUsers.get(chatId).get(target.toLowerCase());
 
+                    if(content.endsWith("++")){
+                        tUser.setKarma(tUser.getKarma() + 1);
+                    }else{
+                        tUser.setKarma(tUser.getKarma() - 1);
+                    }
+
                     long karma = 0;
 
                     for(HashMap<String, User> chats : chatUsers.values()){
@@ -102,11 +108,9 @@ public class KarmaBot {
                     }
 
                     if(content.endsWith("++")){
-                        tUser.setKarma(tUser.getKarma() + 1);
                         message.message("@" + target + " Karma has been increased to " + tUser.getKarma() + "\n" + "With global karma of " + karma);
                         event.getChat().sendMessage(message.build());
                     }else{
-                        tUser.setKarma(tUser.getKarma() - 1);
                         message.message("@" + target + " Karma has been decreased to " + tUser.getKarma() + "\n" + "With global karma of " + karma);
                         event.getChat().sendMessage(message.build());
                     }
