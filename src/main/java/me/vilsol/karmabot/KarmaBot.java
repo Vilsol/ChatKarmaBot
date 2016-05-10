@@ -3,8 +3,10 @@ package me.vilsol.karmabot;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import pro.zackpollard.telegrambot.api.TelegramBot;
+import pro.zackpollard.telegrambot.api.chat.message.send.ParseMode;
 import pro.zackpollard.telegrambot.api.chat.message.send.SendableTextMessage;
 import pro.zackpollard.telegrambot.api.event.Listener;
+import pro.zackpollard.telegrambot.api.event.chat.message.CommandMessageReceivedEvent;
 import pro.zackpollard.telegrambot.api.event.chat.message.TextMessageReceivedEvent;
 
 import java.io.File;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,6 +103,63 @@ public class KarmaBot {
                     }catch(IOException e){
                         System.exit(1);
                     }
+                }
+            }
+
+            @Override
+            public void onCommandMessageReceived(CommandMessageReceivedEvent event){
+                SendableTextMessage.SendableTextMessageBuilder message = SendableTextMessage.builder().replyTo(event.getMessage());
+                String command = event.getCommand();
+                String[] args = event.getArgs();
+
+                if(command.equalsIgnoreCase("info")){
+                    if(chatUsers.containsKey(event.getChat().getId())){
+                        HashMap<String, User> users = chatUsers.get(event.getChat().getId());
+                        if(args.length == 0){
+                            String reply = "";
+                            for(Map.Entry<String, User> user : users.entrySet()){
+                                if(!reply.equals("")){
+                                    reply += "\n";
+                                }
+
+                                reply += "*" + user.getKey() + "*: " + user.getValue().getKarma();
+                            }
+
+                            message.message(reply);
+                            message.parseMode(ParseMode.MARKDOWN);
+                            event.getChat().sendMessage(message.build());
+                        }else if(args.length == 1){
+                            if(args[0].toLowerCase().equals("global")){
+
+                            }else{
+                                String username = args[0].toLowerCase();
+
+                                if(username.startsWith("@")){
+                                    username = username.substring(1);
+                                }
+
+                                if(users.containsKey(username)){
+                                    message.message("*" + username + "*: " + users.get(username).getKarma());
+                                    message.parseMode(ParseMode.MARKDOWN);
+                                    event.getChat().sendMessage(message.build());
+                                }else{
+                                    message.message("User not found!");
+                                    event.getChat().sendMessage(message.build());
+                                }
+                            }
+                        }else if(args.length == 2){
+
+                        }else{
+                            message.message("Usage /info [user/global] [user]");
+                            event.getChat().sendMessage(message.build());
+                        }
+                    }else{
+                        message.message("This chat has not spread any karma!");
+                        event.getChat().sendMessage(message.build());
+                    }
+                }else{
+                    message.message("Invalid Command");
+                    event.getChat().sendMessage(message.build());
                 }
             }
         });
