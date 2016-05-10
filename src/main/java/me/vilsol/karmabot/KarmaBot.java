@@ -141,7 +141,34 @@ public class KarmaBot {
                             event.getChat().sendMessage(message.build());
                         }else if(args.length == 1){
                             if(args[0].toLowerCase().equals("global")){
+                                HashMap<String, Long> karmaMap = new HashMap<>();
 
+                                for(Map.Entry<String, User> user : users.entrySet()){
+                                    karmaMap.put(user.getKey(), 0L);
+                                }
+
+                                chatUsers.values().forEach(chat -> {
+                                    karmaMap.keySet().forEach(user -> {
+                                        if(chat.containsKey(user)){
+                                            karmaMap.put(user, karmaMap.get(user) + chat.get(user).getKarma());
+                                        }
+                                    });
+                                });
+
+                                Map<String, Long> sortedKarma = sortByValue(karmaMap);
+
+                                String reply = "";
+                                for(Map.Entry<String, Long> user : sortedKarma.entrySet()){
+                                    if(!reply.equals("")){
+                                        reply += "\n";
+                                    }
+
+                                    reply += "*" + user.getKey() + "*: " + user.getValue();
+                                }
+
+                                message.message(reply);
+                                message.parseMode(ParseMode.MARKDOWN);
+                                event.getChat().sendMessage(message.build());
                             }else{
                                 String username = args[0].toLowerCase();
 
@@ -159,7 +186,28 @@ public class KarmaBot {
                                 }
                             }
                         }else if(args.length == 2){
+                            String username = args[1].toLowerCase();
 
+                            if(username.startsWith("@")){
+                                username = username.substring(1);
+                            }
+
+                            if(users.containsKey(username)){
+                                long karma = 0;
+
+                                for(HashMap<String, User> chats : chatUsers.values()){
+                                    if(chats.containsKey(username)){
+                                        karma += chats.get(username).getKarma();
+                                    }
+                                }
+
+                                message.message("*" + username + "*: " + karma);
+                                message.parseMode(ParseMode.MARKDOWN);
+                                event.getChat().sendMessage(message.build());
+                            }else{
+                                message.message("User not found!");
+                                event.getChat().sendMessage(message.build());
+                            }
                         }else{
                             message.message("Usage /info [user/global] [user]");
                             event.getChat().sendMessage(message.build());
