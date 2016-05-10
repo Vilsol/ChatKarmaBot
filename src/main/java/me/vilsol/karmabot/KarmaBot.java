@@ -115,7 +115,8 @@ public class KarmaBot {
             JSONObject k = new JSONObject(Files.readAllLines(f.toPath()).get(0));
             k.keySet().forEach(chat -> {
                 chatUsers.put(chat, new HashMap<>());
-                k.getJSONObject(chat).keySet().forEach(u -> chatUsers.get(chat).put(u, new User(k.getJSONObject(u))));
+                JSONObject chatObject = k.getJSONObject(chat);
+                chatObject.keySet().forEach(u -> chatUsers.get(chat).put(u, new User(chatObject.getJSONObject(u))));
             });
         }
     }
