@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -228,7 +229,7 @@ public class KarmaBot {
     public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map){
         Map<K, V> result = new LinkedHashMap<>();
         Stream<Map.Entry<K, V>> st = map.entrySet().stream();
-        st.sorted(Map.Entry.comparingByValue()).forEachOrdered(e -> result.put(e.getKey(), e.getValue()));
+        st.sorted(Map.Entry.comparingByValue((Comparator<V>) (o1, o2) -> o2.compareTo(o1))).forEachOrdered(e -> result.put(e.getKey(), e.getValue()));
         return result;
     }
 
