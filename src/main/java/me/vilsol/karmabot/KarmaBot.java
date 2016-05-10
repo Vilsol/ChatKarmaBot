@@ -32,7 +32,7 @@ public class KarmaBot {
     private Pattern usernamePattern = Pattern.compile("^@[\\w_]{5,32}\\s*(--|\\+\\+)$");
     private Pattern checkPattern = Pattern.compile("<meta property=\"og:title\" content=\"(.+?)\">");
 
-    private long delayTime = 1000 * (60 * 60 * 6); // 6 Hours
+    private long delayTime = 1000 * (60 * 30); // 30 Minutes
 
     public KarmaBot(String apiKey) throws IOException{
         TelegramBot telegramBot = TelegramBot.login(apiKey);
@@ -80,7 +80,7 @@ public class KarmaBot {
                     User user = chatUsers.get(chatId).get(username.toLowerCase());
                     Long lastVote = user.getLastKarma().getOrDefault(target.toLowerCase(), 0L);
                     if(lastVote + delayTime > System.currentTimeMillis()){
-                        message.message("You have already voted for this user in past 6 hours!");
+                        message.message("You have already voted for this user in past 30 minutes!");
                         event.getChat().sendMessage(message.build());
                         return;
                     }
