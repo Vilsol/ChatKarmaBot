@@ -91,13 +91,21 @@ public class KarmaBot {
 
                     User tUser = chatUsers.get(chatId).get(target.toLowerCase());
 
+                    long karma = 0;
+
+                    for(HashMap<String, User> chats : chatUsers.values()){
+                        if(chats.containsKey(target.toLowerCase())){
+                            karma += chats.get(target.toLowerCase()).getKarma();
+                        }
+                    }
+
                     if(content.endsWith("++")){
                         tUser.setKarma(tUser.getKarma() + 1);
-                        message.message("@" + target + " Karma has been increased to " + tUser.getKarma());
+                        message.message("@" + target + " Karma has been increased to " + tUser.getKarma() + "\n" + "With global karma of " + karma);
                         event.getChat().sendMessage(message.build());
                     }else{
                         tUser.setKarma(tUser.getKarma() - 1);
-                        message.message("@" + target + " Karma has been decreased to " + tUser.getKarma());
+                        message.message("@" + target + " Karma has been decreased to " + tUser.getKarma() + "\n" + "With global karma of " + karma);
                         event.getChat().sendMessage(message.build());
                     }
 
