@@ -14,9 +14,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class KarmaBot {
 
@@ -116,13 +118,21 @@ public class KarmaBot {
                     if(chatUsers.containsKey(event.getChat().getId())){
                         HashMap<String, User> users = chatUsers.get(event.getChat().getId());
                         if(args.length == 0){
-                            String reply = "";
+                            HashMap<String, Long> karmaMap = new HashMap<>();
+
                             for(Map.Entry<String, User> user : users.entrySet()){
+                                karmaMap.put(user.getKey(), user.getValue().getKarma());
+                            }
+
+                            Map<String, Long> sortedKarma = sortByValue(karmaMap);
+
+                            String reply = "";
+                            for(Map.Entry<String, Long> user : sortedKarma.entrySet()){
                                 if(!reply.equals("")){
                                     reply += "\n";
                                 }
 
-                                reply += "*" + user.getKey() + "*: " + user.getValue().getKarma();
+                                reply += "*" + user.getKey() + "*: " + user.getValue();
                             }
 
                             message.message(reply);
@@ -213,6 +223,13 @@ public class KarmaBot {
         }
 
         return false;
+    }
+
+    public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map){
+        Map<K, V> result = new LinkedHashMap<>();
+        Stream<Map.Entry<K, V>> st = map.entrySet().stream();
+        st.sorted(Map.Entry.comparingByValue()).forEachOrdered(e -> result.put(e.getKey(), e.getValue()));
+        return result;
     }
 
 }
