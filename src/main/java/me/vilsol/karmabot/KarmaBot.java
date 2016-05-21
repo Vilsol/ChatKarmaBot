@@ -239,9 +239,6 @@ public class KarmaBot {
                         message.message("This chat has not spread any karma!");
                         event.getChat().sendMessage(message.build());
                     }
-                }else{
-                    message.message("Invalid Command");
-                    event.getChat().sendMessage(message.build());
                 }
             }
         });
